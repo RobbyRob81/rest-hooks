@@ -1,7 +1,8 @@
+import { PollingArticleResource } from '__tests__/common';
+
 import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import nock from 'nock';
-import { PollingArticleResource } from '__tests__/common';
 
 // relative imports to avoid circular dependency in tsconfig references
 import {
@@ -28,10 +29,12 @@ for (const makeProvider of [makeCacheProvider, makeExternalCacheProvider]) {
       e.preventDefault();
     }
     beforeEach(() => {
-      window.addEventListener('error', onError);
+      if (typeof addEventListener === 'function')
+        addEventListener('error', onError);
     });
     afterEach(() => {
-      window.removeEventListener('error', onError);
+      if (typeof removeEventListener === 'function')
+        removeEventListener('error', onError);
     });
 
     beforeEach(() => {

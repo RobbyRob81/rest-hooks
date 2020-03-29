@@ -5,6 +5,7 @@ import {
   UserResource,
   ArticleResourceWithOtherListUrl,
 } from '__tests__/common';
+
 import React from 'react';
 import nock from 'nock';
 import { act } from '@testing-library/react-hooks';
@@ -29,10 +30,12 @@ function onError(e: any) {
   e.preventDefault();
 }
 beforeEach(() => {
-  window.addEventListener('error', onError);
+  if (typeof addEventListener === 'function')
+    addEventListener('error', onError);
 });
 afterEach(() => {
-  window.removeEventListener('error', onError);
+  if (typeof removeEventListener === 'function')
+    removeEventListener('error', onError);
 });
 
 for (const makeProvider of [makeCacheProvider, makeExternalCacheProvider]) {

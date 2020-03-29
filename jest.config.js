@@ -30,7 +30,6 @@ const baseConfig = {
       tsConfig: '<rootDir>/tsconfig.test.json',
     },
   },
-  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(j|t)sx?$',
   coveragePathIgnorePatterns: [
     'node_modules',
     'react-integration/hooks/useSelection',
@@ -45,7 +44,7 @@ const baseConfig = {
       },
     ),
   },
-  setupFiles: ['<rootDir>/scripts/testSetup.js'],
+  testURL: 'http://localhost',
 };
 
 const packages = ['legacy', 'rest-hooks', 'normalizr', 'use-enhanced-reducer'];
@@ -55,6 +54,26 @@ const projects = [
     ...baseConfig,
     rootDir: __dirname,
     roots: packages.map(pkgName => `<rootDir>/packages/${pkgName}/src`),
+    displayName: 'ReactDOM',
+    setupFiles: ['<rootDir>/scripts/testSetup.web.js'],
+    testRegex:
+      '(/__tests__/((?!\\.native-test).)*|(\\.|/)(test|spec|web))\\.(j|t)sx?$',
+  },
+  {
+    ...baseConfig,
+    rootDir: __dirname,
+    roots: packages.map(pkgName => `<rootDir>/packages/${pkgName}/src`),
+    displayName: 'React Native',
+    preset: 'react-native',
+    testRegex:
+      '(/__tests__/((?!\\.web).)*|(\\.|/)(test|spec|native-test))\\.(j|t)sx?$',
+    setupFiles: ['<rootDir>/scripts/testSetup.native.js'],
+    transformIgnorePatterns: ['poiuytre'],
+    transform: {
+      '/node_modules/.+\\.js$':
+        '<rootDir>/node_modules/react-native/jest/preprocessor.js',
+      ...baseConfig.transform,
+    },
   },
 ];
 
