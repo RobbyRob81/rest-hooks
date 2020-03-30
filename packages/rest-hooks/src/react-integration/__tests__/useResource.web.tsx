@@ -20,7 +20,7 @@ import {
 import { normalize } from '../../resource';
 import { DispatchContext, StateContext } from '../context';
 import { useResource } from '../hooks';
-import { payload, users, nested } from './fixtures';
+import { payload, users, nested } from '../test-fixtures';
 
 async function testDispatchFetch(
   Component: React.FunctionComponent<any>,

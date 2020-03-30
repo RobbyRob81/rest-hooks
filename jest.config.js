@@ -22,7 +22,7 @@ function readTsConfig(path = './', configName = 'tsconfig.json') {
 const baseConfig = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
-    '^.+\\.(j)sx?$': '<rootDir>/scripts/babel-jest',
+    '^.+\\.(j)sx?$': ['babel-jest', { rootMode: 'upward' }],
   },
   globals: {
     'ts-jest': {
@@ -35,6 +35,7 @@ const baseConfig = {
     'react-integration/hooks/useSelection',
     'packages/test',
   ],
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(j|t)sx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
     ...pathsToModuleNameMapper(
@@ -55,9 +56,7 @@ const projects = [
     rootDir: __dirname,
     roots: packages.map(pkgName => `<rootDir>/packages/${pkgName}/src`),
     displayName: 'ReactDOM',
-    setupFiles: ['<rootDir>/scripts/testSetup.web.js'],
-    testRegex:
-      '(/__tests__/((?!\\.native-test).)*|(\\.|/)(test|spec|web))\\.(j|t)sx?$',
+    setupFiles: ['<rootDir>/scripts/testSetupWeb.js'],
   },
   {
     ...baseConfig,
@@ -65,14 +64,19 @@ const projects = [
     roots: packages.map(pkgName => `<rootDir>/packages/${pkgName}/src`),
     displayName: 'React Native',
     preset: 'react-native',
-    testRegex:
-      '(/__tests__/((?!\\.web).)*|(\\.|/)(test|spec|native-test))\\.(j|t)sx?$',
-    setupFiles: ['<rootDir>/scripts/testSetup.native.js'],
-    transformIgnorePatterns: ['poiuytre'],
+    transformIgnorePatterns: [
+      '/node_modules/(?!(jest-)?react-native|@react-native-community)', //from RN preset
+      '<rootDir>/.*__tests__/[^/]+\\.web\\.(j|t)sx?$',
+    ],
+    setupFiles: [
+      '<rootDir>/node_modules/react-native/jest/setup.js', //from RN preset
+      '<rootDir>/scripts/testSetupNative.js',
+    ],
     transform: {
-      '/node_modules/.+\\.js$':
-        '<rootDir>/node_modules/react-native/jest/preprocessor.js',
+      //'^.+\\.js$': '<rootDir>/node_modules/react-native/jest/preprocessor.js', //setup.js needs to be transformed, but preprocessor screws everything else up
       ...baseConfig.transform,
+      '^.+\\.(bmp|gif|jpg|jpeg|mp4|png|psd|svg|webp)$':
+        '<rootDir>/node_modules/react-native/jest/assetFileTransformer.js', //from RN preset
     },
   },
 ];

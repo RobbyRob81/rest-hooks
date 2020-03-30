@@ -24,7 +24,7 @@ import {
   nested,
   paginatedFirstPage,
   paginatedSecondPage,
-} from './fixtures';
+} from '../test-fixtures';
 
 function onError(e: any) {
   e.preventDefault();

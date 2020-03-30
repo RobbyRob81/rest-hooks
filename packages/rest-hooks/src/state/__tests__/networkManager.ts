@@ -1,4 +1,5 @@
 import { ArticleResource } from '__tests__/common';
+import { Middleware } from '@rest-hooks/use-enhanced-reducer';
 
 import NetworkManager from '../NetworkManager';
 import { FetchAction, ResetAction } from '../../types';
@@ -12,6 +13,9 @@ import {
 describe('NetworkManager', () => {
   const manager = new NetworkManager();
   const getState = () => {};
+  afterAll(() => {
+    manager.cleanup();
+  });
   describe('getMiddleware()', () => {
     it('should return the same value every call', () => {
       const a = manager.getMiddleware();
@@ -24,6 +28,7 @@ describe('NetworkManager', () => {
       const a2 = manager2.getMiddleware();
       expect(a).not.toBe(a2);
       expect(a2).toBe(manager2.getMiddleware());
+      manager2.cleanup();
     });
   });
   describe('cleanup()', () => {
@@ -99,9 +104,17 @@ describe('NetworkManager', () => {
         promise: new Promise((v: any) => null),
       },
     };
-    it('should handle fetch actions and dispatch on success', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
 
+    let NM: NetworkManager;
+    let middleware: Middleware;
+    beforeEach(() => {
+      NM = new NetworkManager(42, 7);
+      middleware = NM.getMiddleware();
+    });
+    afterEach(() => {
+      NM.cleanup();
+    });
+    it('should handle fetch actions and dispatch on success', async () => {
       const next = jest.fn();
       const dispatch = jest.fn();
 
@@ -122,8 +135,6 @@ describe('NetworkManager', () => {
       });
     });
     it('should handle fetch receive action and dispatch on success with updaters', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const next = jest.fn();
       const dispatch = jest.fn();
 
@@ -147,8 +158,6 @@ describe('NetworkManager', () => {
       });
     });
     it('should handle fetch rpc action and dispatch on success with updaters', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const next = jest.fn();
       const dispatch = jest.fn();
 
@@ -172,8 +181,6 @@ describe('NetworkManager', () => {
       });
     });
     it('should handle fetch rpc action with optimistic response and dispatch on success with updaters', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const next = jest.fn();
       const dispatch = jest.fn();
 
@@ -199,8 +206,6 @@ describe('NetworkManager', () => {
       });
     });
     it('should use dataExpireLength from action if specified', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const dispatch = jest.fn();
 
       middleware({ dispatch, getState })(() => Promise.resolve())({
@@ -218,8 +223,6 @@ describe('NetworkManager', () => {
       expect(meta.expiresAt - meta.date).toBe(314);
     });
     it('should use dataExpireLength from NetworkManager if not specified in action', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const dispatch = jest.fn();
 
       middleware({ dispatch, getState })(() => Promise.resolve())({
@@ -237,8 +240,6 @@ describe('NetworkManager', () => {
       expect(meta.expiresAt - meta.date).toBe(42);
     });
     it('should handle fetch actions and dispatch on error', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const next = jest.fn();
       const dispatch = jest.fn();
 
@@ -260,8 +261,6 @@ describe('NetworkManager', () => {
       }
     });
     it('should use errorExpireLength from action if specified', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const dispatch = jest.fn();
 
       try {
@@ -279,8 +278,6 @@ describe('NetworkManager', () => {
       }
     });
     it('should use errorExpireLength from NetworkManager if not specified in action', async () => {
-      const middleware = new NetworkManager(42, 7).getMiddleware();
-
       const dispatch = jest.fn();
 
       try {
@@ -341,22 +338,8 @@ describe('NetworkManager', () => {
       expect(rejection).toBeDefined();
 
       expect(dispatch).not.toHaveBeenCalled();
-    });
-  });
-});
 
-describe('RequestIdleCallback', () => {
-  it('should still run when requestIdleCallback is not available', () => {
-    const requestIdle = (global as any).requestIdleCallback;
-    (global as any).requestIdleCallback = undefined;
-    jest.resetModules();
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const RIC = require('../RIC').default;
-    const fn = jest.fn();
-    jest.useFakeTimers();
-    RIC(fn, {});
-    jest.runAllTimers();
-    expect(fn).toBeCalled();
-    (global as any).requestIdleCallback = requestIdle;
+      manager.cleanup();
+    });
   });
 });
